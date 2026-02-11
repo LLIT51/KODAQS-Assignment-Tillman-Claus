@@ -9,3 +9,5 @@
 data/raw/
 data/processed/
 output/
+
+renv/library/
