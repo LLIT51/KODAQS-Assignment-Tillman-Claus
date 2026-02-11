@@ -1,0 +1,11 @@
+# R project files
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+
+
+#Folders
+data/raw/
+data/processed/
+output/
