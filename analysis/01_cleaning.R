@@ -9,8 +9,11 @@ library(dplyr)
 library(foreign)
 library(tableone) 
 
-##############
+
+
+#####################
 #Loading the waves
+
 
 #loading files
 wave6_dn <- read.dta("data/raw/sharew6_rel9-0-0_dn.dta")
@@ -63,6 +66,9 @@ wave7 <- wave7 %>% mutate(wave = 7)
 wave8 <- wave8 %>% mutate(wave = 8)
 wave9 <- wave9 %>% mutate(wave = 9)
 
+
+
+
 ######################
 # Create longitudinal dataset
 
@@ -71,7 +77,7 @@ wave9 <- wave9 %>% mutate(wave = 9)
 
 # Variables to keep:
 #dn: mergeid, wave, country, dn003_ (year of birth), dn014_ (marital status), dn010_ (highest education), dn041_ (years of education), dn042_ (gender), 
-#ep: mergeid, wave, ep005_ (employment), ep329_ (Retirement year), ep027_ (physical job demands), ep028_ (time pressure), ep029_ (little freedom), ep031_ (support), ep204_ (any earnings), ep205_ (employment earnings), ep078_ (average payment)
+#ep: mergeid, wave, ep005_ (employment), ep329_ (Retirement year), ep027_ (physical job demands), ep028_ (time pressure), ep029_ (little freedom), ep031_ (support), ep204_ (employed yes no), ep205e (employment earnings), ep078e_1 (average payment)
 #ph: mergeid, wave, ph003_ (Self-rated health), ph004_ (Illness), ph005_ (Health limitations)
 
 vars_keep <- c(
@@ -88,9 +94,9 @@ vars_keep <- c(
   "ep028_",   # time pressure
   "ep029_",   # little freedom
   "ep031_",   # job support
-  "ep078_",   # average payment
-  "ep204_",   # any earning
-  "ep205_",   # employment earnings
+  "ep078e_1", # average payment
+  "ep204_",   # received employment earning
+  "ep205e",  # amount of employment earnings
   "ph003_",   # self-rated health
   "ph004_",   # illness
   "ph005_"    # health limitation
@@ -122,3 +128,29 @@ paneldata <- bind_rows(
 rm(list = setdiff(ls(), "paneldata"))
 
 save(paneldata, file = "data/processed/paneldata.Rda")
+
+
+
+
+#############################
+# Preparing the Panel dataset
+
+paneldata <- paneldata %>%
+  dplyr::rename(
+   y_birth = dn003_,   # year of birth
+   degree  = dn010_,   # highest degree
+   married = dn014_,   # marital status
+   y_educ = dn041_,   # years of education
+   gender = dn042_,   # gender
+   work_status = ep005_,   # employment status
+   phy_demands = ep027_,   # physical job demands
+   t_pressure = ep028_,   # time pressure
+   no_freedom = ep029_,   # little freedom
+   support = ep031_,   # job support
+   m_earnings = ep078e_1,   # average payment
+   employed = ep204_,   # employment earning yes or no
+   y_emp_earnings = ep205e,   # employment earnings yearly
+   srh = ph003_,   # self-rated health
+   illness = ph004_,   # illness
+   limitations = ph005_    # health limitation
+  )
