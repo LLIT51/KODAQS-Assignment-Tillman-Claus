@@ -1,4 +1,5 @@
-
+library(stargazer)
+library(survival)
 
 ##############
 # Creating and inspecting sample
@@ -114,8 +115,9 @@ cox_sample <- sample_early %>%
 #######################
 # Analysis
 
-library(survival)
 
+
+#### Preparations
 # change scales
 
 likert_map <- c(
@@ -131,7 +133,7 @@ cox_sample <- cox_sample %>%
     t_pressure_num  = recode(t_pressure,  !!!likert_map),
     no_freedom_num  = recode(no_freedom,  !!!likert_map),
     support_num     = recode(support,     !!!likert_map),
-    srh_num = recode(
+    poor_srh_num = recode(
       srh,
       "Excellent" = 1,
       "Very good" = 2,
@@ -148,6 +150,12 @@ vars <- c("phy_demands", "t_pressure", "no_freedom", "support", "srh")
 cox_sample <- cox_sample %>%
   mutate(across(all_of(vars), ~ na_if(., "Don't know")))
 
+cox_sample <- cox_sample %>%
+  mutate(gender = na_if(gender, "Don't know")) %>%
+  filter(!is.na(gender))
+cox_sample <- cox_sample %>%
+  mutate(gender = droplevels(gender))
+
 
 
 # create lagged variables for working conditions and monthly earnings, NA otherwise
@@ -161,7 +169,7 @@ cox_sample <- cox_sample %>%
     no_freedom_lag = lag(no_freedom_num),
     support_lag = lag(support_num),
     y_emp_earnings_lag = lag(y_emp_earnings),
-    srh_lag = lag(srh_num),
+    poor_srh_lag = lag(poor_srh_num),
     age_start = lag(age),
     age_end = age
   ) %>%
@@ -173,9 +181,10 @@ cox_sample_clean <- cox_sample %>%
   filter(!lag(retired_now, default = FALSE))
 
 
+##### Model calculation
 
-
-coxph(
+# Baseline model
+baseline_model <- coxph(
   Surv(age_start, age_end, early_retired) ~
     phy_demands_lag +
     t_pressure_lag +
@@ -188,3 +197,10 @@ coxph(
   data = cox_sample_clean
 )
 
+
+# Export as HTML or text table
+stargazer(baseline_model,
+          type = "html",
+          out = "output/cox_models_table.html",
+          ci = TRUE,
+          single.row = TRUE)
