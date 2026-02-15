@@ -27,6 +27,7 @@ The scripts in `analysis/` will process the data automatically.
 From the project root directory:
 
 chmod +x run_all.sh
+
 ./run_all.sh
 
 To ensure reproducability I used renv in this project
