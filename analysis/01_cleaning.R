@@ -125,12 +125,6 @@ paneldata <- bind_rows(
   wave9_reduced
 )
 
-rm(list = setdiff(ls(), "paneldata"))
-
-save(paneldata, file = "data/processed/paneldata.Rda")
-
-
-
 
 #############################
 # Preparing the Panel dataset
@@ -154,3 +148,11 @@ paneldata <- paneldata %>%
    illness = ph004_,   # illness
    limitations = ph005_    # health limitation
   )
+
+
+rm(list = setdiff(ls(), "paneldata"))
+
+save(paneldata, file = "data/processed/paneldata.Rda")
+
+
+
