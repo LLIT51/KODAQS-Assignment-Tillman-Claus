@@ -82,12 +82,11 @@ baseline_sample %>%
   table()
 
 
-
 baseline_sample <- baseline_sample %>%
   mutate(
-    early_retired = ifelse(first_retirement & age < 65, 1, 0),
-    at_risk = age < 65
+    early_retired = first_retirement
   )
+
 
 
 # create dataset with right censoring at age 65
@@ -101,37 +100,91 @@ sample_early <- baseline_sample %>%
 cox_sample <- sample_early %>%
   arrange(mergeid, age) %>%
   group_by(mergeid) %>%
-  filter(age <= age[which(early_retired == 1)[1]] | all(early_retired == 0)) %>%
+  mutate(
+    event_age = ifelse(first_retirement, age, NA_real_),
+    event_age = min(event_age, na.rm = TRUE)
+  ) %>%
+  filter(is.na(event_age) | age <= event_age) %>%
   ungroup()
 
 
 
 
-######################
-# Descriptives
-
-
-sample_early %>%
-  summarise(across(
-    c(y_birth,
-      degree,
-      married,
-      y_educ,
-      gender,
-      work_status,
-      phy_demands,
-      t_pressure,
-      no_freedom,
-      support,
-      m_earnings,
-      employed,
-      y_emp_earnings,
-      srh,
-      illness,
-      limitations),
-    ~ sum(is.na(.))
-  ))
-
 
 #######################
 # Analysis
+
+library(survival)
+
+# change scales
+
+likert_map <- c(
+  "Strongly disagree" = 1,
+  "Disagree"          = 2,
+  "Agree"             = 3,
+  "Strongly agree"    = 4
+)
+
+cox_sample <- cox_sample %>%
+  mutate(
+    phy_demands_num = recode(phy_demands, !!!likert_map),
+    t_pressure_num  = recode(t_pressure,  !!!likert_map),
+    no_freedom_num  = recode(no_freedom,  !!!likert_map),
+    support_num     = recode(support,     !!!likert_map),
+    srh_num = recode(
+      srh,
+      "Excellent" = 1,
+      "Very good" = 2,
+      "Good"      = 3,
+      "Fair"      = 4,
+      "Poor"      = 5
+    )
+  )
+
+# change dont knows to na
+
+vars <- c("phy_demands", "t_pressure", "no_freedom", "support", "srh")
+
+cox_sample <- cox_sample %>%
+  mutate(across(all_of(vars), ~ na_if(., "Don't know")))
+
+
+
+# create lagged variables for working conditions and monthly earnings, NA otherwise
+
+cox_sample <- cox_sample %>%
+  arrange(mergeid, wave) %>%
+  group_by(mergeid) %>%
+  mutate(
+    phy_demands_lag = lag(phy_demands_num),
+    t_pressure_lag = lag(t_pressure_num),
+    no_freedom_lag = lag(no_freedom_num),
+    support_lag = lag(support_num),
+    y_emp_earnings_lag = lag(y_emp_earnings),
+    srh_lag = lag(srh_num),
+    age_start = lag(age),
+    age_end = age
+  ) %>%
+  ungroup()
+
+cox_sample_clean <- cox_sample %>%
+  filter(!is.na(age_start)) %>%
+  filter(age_start < 65) %>%
+  filter(!lag(retired_now, default = FALSE))
+
+
+
+
+coxph(
+  Surv(age_start, age_end, early_retired) ~
+    phy_demands_lag +
+    t_pressure_lag +
+    no_freedom_lag +
+    support_lag +
+    srh_lag +
+    y_emp_earnings_lag +
+    gender +
+    cluster(mergeid),
+  data = cox_sample_clean
+)
+
