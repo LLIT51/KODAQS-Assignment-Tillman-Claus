@@ -1,5 +1,10 @@
 # KODAQS-Assignment-Tillman-Claus
 This is my contribution to the Course Assignment for Course 4.1 of the KODAQS Academy
+It is my first time using Git, so the commits are a bit messy.
+In this research project I wanted to try out cox proportional hazard models to estimate the effect of working conditions on the probability to retire early from the labour market.
+For this I used data from SHARE.
+Since this was also my first time working with hazard models, creating a feasible data structure for it took longer than expected, which reduced the analysis I was able to do afterwards.
+But as the goal here was not to create a great analysis I wanted to use to opportunity to try something new.
 
 
 ## Data
@@ -16,3 +21,13 @@ To reproduce the analysis:
    data/raw/
 
 The scripts in `analysis/` will process the data automatically.
+
+## Running the Full Analysis
+
+From the project root directory:
+
+chmod +x run_all.sh
+
+./run_all.sh
+
+To ensure reproducability I used renv in this project
