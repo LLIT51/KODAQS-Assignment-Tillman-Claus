@@ -22,14 +22,11 @@ To reproduce the analysis:
 
 The scripts in `analysis/` will process the data automatically.
 
-## Renv
+## Running the Full Analysis
 
-This project uses renv to ensure full reproducibility of the R environment.
+From the project root directory:
 
-To reproduce the analysis:
+chmod +x run_all.sh
+./run_all.sh
 
-1. Clone the repository
-2. Open the project in RStudio
-3. Run:
-
-renv::restore()
+To ensure reproducability I used renv in this project
