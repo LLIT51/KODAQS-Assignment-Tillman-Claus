@@ -150,7 +150,11 @@ paneldata <- paneldata %>%
   )
 
 
+# Saving and clearing the environment
+
 rm(list = setdiff(ls(), "paneldata"))
+
+dir.create("data/processed", showWarnings = FALSE, recursive = TRUE)
 
 save(paneldata, file = "data/processed/paneldata.Rda")
 

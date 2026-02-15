@@ -1,6 +1,9 @@
 library(stargazer)
 library(survival)
 
+load("data/processed/paneldata.Rda")
+
+
 ##############
 # Creating and inspecting sample
 
@@ -178,7 +181,9 @@ cox_sample <- cox_sample %>%
 cox_sample_clean <- cox_sample %>%
   filter(!is.na(age_start)) %>%
   filter(age_start < 65) %>%
-  filter(!lag(retired_now, default = FALSE))
+
+
+save(cox_sample_clean, file = "data/processed/cox_data.Rda")
 
 
 ##### Model calculation
@@ -190,7 +195,7 @@ baseline_model <- coxph(
     t_pressure_lag +
     no_freedom_lag +
     support_lag +
-    srh_lag +
+    poor_srh_lag +
     y_emp_earnings_lag +
     gender +
     cluster(mergeid),
@@ -199,6 +204,9 @@ baseline_model <- coxph(
 
 
 # Export as HTML or text table
+
+dir.create("output", showWarnings = FALSE)
+
 stargazer(baseline_model,
           type = "html",
           out = "output/cox_models_table.html",
